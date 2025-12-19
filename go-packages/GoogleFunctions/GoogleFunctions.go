@@ -10,43 +10,43 @@ type GoogleFunctions struct {
 
 //Package that enables the pricing of functions on Google Cloud Functions as per pricing guide https://cloud.google.com/functions/pricing
 
-//Pricing variables
-//Free function requests
+// Pricing variables
+// Free function requests
 var freeRequests = 2000000
 
-//Free function Compute in GBsec
+// Free function Compute in GBsec
 var freeCompute = 400000.0
 
-//Free function CPU usage in GHzsec
+// Free function CPU usage in GHzsec
 var freeComputeCPU = 200000.0
 
-//Price in $ per GBsec of computation (updated December 2025 - 1st gen, Tier 1)
+// Price in $ per GBsec of computation (updated December 2025 - 1st gen, Tier 1)
 var COMPUTE_PRICE = 0.0000025
 
-//Price in $ per GHzsec of computation (updated December 2025 - 1st gen, Tier 1)
+// Price in $ per GHzsec of computation (updated December 2025 - 1st gen, Tier 1)
 var COMPUTE_CPU_PRICE = 0.00001
 
-//Price in $ per function request (updated December 2025 - 1st gen)
+// Price in $ per function request (updated December 2025 - 1st gen)
 var REQUEST_PRICE = 0.0000004
 
-//Running totals of total requests, function runtime and function computation on platform
+// Running totals of total requests, function runtime and function computation on platform
 var TotalRequests uint64
 var TotalRuntime uint64
 var TotalCompute uint64
 var TotalComputeCPU uint64
 var TotalPrice = 0.0
 
-//Running totals of just non malicious requests, for purpose of calculating attack damage
+// Running totals of just non malicious requests, for purpose of calculating attack damage
 var BaseRequests uint64
 var BaseRuntime uint64
 var BaseCompute uint64
 var BaseComputeCPU uint64
 var BasePrice = 0.0
 
-//Running totals for individual function totals (Hard coded to keep track of 10 functions - can be expanded)
+// Running totals for individual function totals (Hard coded to keep track of 10 functions - can be expanded)
 var functions [10][4]uint64
 
-//Function that updates running totals with function invocation
+// Function that updates running totals with function invocation
 func RunFunction(id int, runtime uint64, memory uint64) {
 	//Atomic incrimentation of requests by 1
 	atomic.AddUint64(&TotalRequests, 1)
@@ -87,11 +87,11 @@ func RunFunction(id int, runtime uint64, memory uint64) {
 	atomic.AddUint64(&functions[id][0], 1)
 	atomic.AddUint64(&functions[id][1], runtime)
 	atomic.AddUint64(&functions[id][2], uint64(compute))
-	atomic.AddUint64(&functions[id][2], uint64(computeCPU))
+	atomic.AddUint64(&functions[id][3], uint64(computeCPU))
 
 }
 
-//Function that updates running totals with function invocation
+// Function that updates running totals with function invocation
 func RunBaseFunction(id int, runtime uint64, memory uint64) {
 	//Atomic incrimentation of requests by 1
 	atomic.AddUint64(&BaseRequests, 1)
@@ -135,11 +135,11 @@ func RunBaseFunction(id int, runtime uint64, memory uint64) {
 	atomic.AddUint64(&functions[id][0], 1)
 	atomic.AddUint64(&functions[id][1], runtime)
 	atomic.AddUint64(&functions[id][2], uint64(compute))
-	atomic.AddUint64(&functions[id][2], uint64(computeCPU))
+	atomic.AddUint64(&functions[id][3], uint64(computeCPU))
 
 }
 
-//Function to calculate total price of function executions on platform
+// Function to calculate total price of function executions on platform
 func CalculatePrice() string {
 	//Subract free requests from total requests
 	totalRequests := int(TotalRequests) - freeRequests
@@ -174,7 +174,7 @@ func CalculatePrice() string {
 	return out
 }
 
-//Function to calculate base price of function executions on platform
+// Function to calculate base price of function executions on platform
 func CalculateBasePrice() string {
 	//Subract free requests from base requests
 	baseRequests := int(BaseRequests) - freeRequests
@@ -209,7 +209,7 @@ func CalculateBasePrice() string {
 	return out
 }
 
-//Function that calculates cost per function. Works the same as total cost function except returns array of prices of each function
+// Function that calculates cost per function. Works the same as total cost function except returns array of prices of each function
 func CalculateFnPrice(numfn int) []float64 {
 	var prices []float64
 
